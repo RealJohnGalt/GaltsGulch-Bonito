@@ -3086,6 +3086,9 @@ context_switch(struct rq *rq, struct task_struct *prev,
 		prev->active_mm = NULL;
 		rq->prev_mm = oldmm;
 	}
+
+	rq->clock_skip_update = 0;
+
 	/*
 	 * Since the runqueue lock will be released by the next
 	 * task (which is an invalid locking op but in the case
@@ -3699,7 +3702,6 @@ static void __sched notrace __schedule(bool preempt)
 	next = pick_next_task(rq, prev, &rf);
 	clear_tsk_need_resched(prev);
 	clear_preempt_need_resched();
-	rq->clock_skip_update = 0;
 
 	wallclock = ktime_get_ns();
 	if (likely(prev != next)) {
@@ -3718,6 +3720,7 @@ static void __sched notrace __schedule(bool preempt)
 		trace_sched_switch(preempt, prev, next);
 		rq = context_switch(rq, prev, next, &rf); /* unlocks the rq */
 	} else {
+		rq->clock_skip_update = 0;
 		update_task_ravg(prev, rq, TASK_UPDATE, wallclock, 0);
 		rq_unlock_irq(rq, &rf);
 	}
