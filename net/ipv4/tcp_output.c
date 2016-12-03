@@ -893,6 +893,14 @@ void tcp_wfree(struct sk_buff *skb)
 		if (nval != oval)
 			continue;
 
+		if (!(oval & TSQF_THROTTLED) || (oval & TSQF_QUEUED))
+			goto out;
+
+		nval = (oval & ~TSQF_THROTTLED) | TSQF_QUEUED;
+		nval = cmpxchg(&tp->tsq_flags, oval, nval);
+		if (nval != oval)
+			continue;
+
 		/* queue this socket to tasklet queue */
 		local_irq_save(flags);
 		tsq = this_cpu_ptr(&tsq_tasklet);
