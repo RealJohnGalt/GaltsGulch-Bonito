@@ -1703,7 +1703,7 @@ static int neigh_add(struct sk_buff *skb, struct nlmsghdr *nlh)
 	int err;
 
 	ASSERT_RTNL();
-	err = nlmsg_parse(nlh, sizeof(*ndm), tb, NDA_MAX, NULL);
+	err = nlmsg_parse(nlh, sizeof(*ndm), tb, NDA_MAX, NULL, NULL);
 	if (err < 0)
 		goto out;
 
@@ -1987,7 +1987,7 @@ static int neightbl_set(struct sk_buff *skb, struct nlmsghdr *nlh)
 	int err, tidx;
 
 	err = nlmsg_parse(nlh, sizeof(*ndtmsg), tb, NDTA_MAX,
-			  nl_neightbl_policy);
+			  nl_neightbl_policy, NULL);
 	if (err < 0)
 		goto errout;
 
@@ -2025,7 +2025,7 @@ static int neightbl_set(struct sk_buff *skb, struct nlmsghdr *nlh)
 		int i, ifindex = 0;
 
 		err = nla_parse_nested(tbp, NDTPA_MAX, tb[NDTA_PARMS],
-				       nl_ntbl_parm_policy);
+				       nl_ntbl_parm_policy, NULL);
 		if (err < 0)
 			goto errout_tbl_lock;
 
@@ -2316,7 +2316,7 @@ static int neigh_dump_table(struct neigh_table *tbl, struct sk_buff *skb,
 	unsigned int flags = NLM_F_MULTI;
 	int err;
 
-	err = nlmsg_parse(nlh, sizeof(struct ndmsg), tb, NDA_MAX, NULL);
+	err = nlmsg_parse(nlh, sizeof(struct ndmsg), tb, NDA_MAX, NULL, NULL);
 	if (!err) {
 		if (tb[NDA_IFINDEX]) {
 			if (nla_len(tb[NDA_IFINDEX]) != sizeof(u32))
