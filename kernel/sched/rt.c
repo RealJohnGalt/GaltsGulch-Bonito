@@ -1823,7 +1823,7 @@ static int find_lowest_rq(struct task_struct *task)
 		sg = sd->groups;
 		do {
 			if (!cpumask_intersects(lowest_mask,
-						sched_group_cpus(sg)))
+						sched_group_span(sg)))
 				continue;
 
 			if (!sysctl_sched_is_big_little) {
@@ -1849,7 +1849,7 @@ static int find_lowest_rq(struct task_struct *task)
 
 		if (sg_target) {
 			cpumask_and(&search_cpu, lowest_mask,
-				    sched_group_cpus(sg_target));
+				    sched_group_span(sg_target));
 			cpumask_copy(&backup_search_cpu, lowest_mask);
 			cpumask_andnot(&backup_search_cpu, &backup_search_cpu,
 				       &search_cpu);

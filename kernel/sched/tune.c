@@ -1114,7 +1114,7 @@ schedtune_add_cluster_nrg(
 	int cpu;
 
 	/* Get Cluster energy using EM data for the first CPU */
-	cluster_cpus = sched_group_cpus(sg);
+	cluster_cpus = sched_group_span(sg);
 	snprintf(str, 32, "CLUSTER[%*pbl]",
 		 cpumask_pr_args(cluster_cpus));
 
