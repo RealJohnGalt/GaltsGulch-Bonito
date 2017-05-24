@@ -198,6 +198,7 @@ extern void cpu_hotplug_begin(void);
 extern void cpu_hotplug_done(void);
 extern void get_online_cpus(void);
 extern void put_online_cpus(void);
+static inline void lockdep_assert_cpus_held(void) { }
 extern void cpu_hotplug_disable(void);
 extern void cpu_hotplug_enable(void);
 #define hotcpu_notifier(fn, pri)	cpu_notifier(fn, pri)
@@ -210,6 +211,7 @@ void clear_tasks_mm_cpumask(int cpu);
 int cpu_down(unsigned int cpu);
 
 #else		/* CONFIG_HOTPLUG_CPU */
+static inline void lockdep_assert_cpus_held(void) { }
 
 static inline void cpu_hotplug_begin(void) {}
 static inline void cpu_hotplug_done(void) {}
