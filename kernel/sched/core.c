@@ -10403,6 +10403,18 @@ int sched_rr_handler(struct ctl_table *table, int write,
 	return ret;
 }
 
+void threadgroup_change_begin(struct task_struct *tsk)
+{
+	might_sleep();
+	cgroup_threadgroup_change_begin(tsk);
+}
+
+void threadgroup_change_end(struct task_struct *tsk)
+{
+	cgroup_threadgroup_change_end(tsk);
+}
+
+#ifdef CONFIG_CGROUP_SCHED
 #ifdef CONFIG_PROC_SYSCTL
 int sched_updown_migrate_handler(struct ctl_table *table, int write,
 				 void __user *buffer, size_t *lenp,
@@ -10418,8 +10430,8 @@ int sched_updown_migrate_handler(struct ctl_table *table, int write,
 
 	ret = proc_douintvec_capacity(table, write, buffer, lenp, ppos);
 
-	if (!ret && write &&
-	    sysctl_sched_capacity_margin > sysctl_sched_capacity_margin_down) {
+	if (!ret && write && sysctl_sched_capacity_margin_up >
+				sysctl_sched_capacity_margin_down) {
 		ret = -EINVAL;
 		*data = old_val;
 	}
@@ -10428,19 +10440,6 @@ int sched_updown_migrate_handler(struct ctl_table *table, int write,
 	return ret;
 }
 #endif
-
-void threadgroup_change_begin(struct task_struct *tsk)
-{
-	might_sleep();
-	cgroup_threadgroup_change_begin(tsk);
-}
-
-void threadgroup_change_end(struct task_struct *tsk)
-{
-	cgroup_threadgroup_change_end(tsk);
-}
-
-#ifdef CONFIG_CGROUP_SCHED
 
 static inline struct task_group *css_tg(struct cgroup_subsys_state *css)
 {

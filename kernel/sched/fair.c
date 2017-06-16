@@ -161,18 +161,20 @@ int __weak arch_asym_cpu_priority(int cpu)
 unsigned int sysctl_sched_cfs_bandwidth_slice = 5000UL;
 #endif
 
-/*
- * The margin used when comparing utilization with CPU capacity:
- * util * margin < capacity * 1024
- */
-unsigned int sysctl_sched_capacity_margin = 1078; /* ~5% margin */
-unsigned int sysctl_sched_capacity_margin_down = 1205; /* ~15% margin */
-#define capacity_margin sysctl_sched_capacity_margin
-
 #ifdef CONFIG_SCHED_WALT
 unsigned int sysctl_sched_min_task_util_for_boost_colocation;
 #endif
 static unsigned int __maybe_unused sched_small_task_threshold = 102;
+
+/*
+ * The margin used when comparing utilization with CPU capacity:
+ * util * margin < capacity * 1024
+ *
+ * (default: ~20%)
+ */
+unsigned int capacity_margin				= 1280;
+unsigned int sysctl_sched_capacity_margin_up = 1078; /* ~5% margin */
+unsigned int sysctl_sched_capacity_margin_down = 1205; /* ~15% margin */
 
 static inline void update_load_add(struct load_weight *lw, unsigned long inc)
 {
@@ -6554,7 +6556,7 @@ static inline bool __task_fits(struct task_struct *p, int cpu, int util)
 	if (capacity_orig_of(task_cpu(p)) > capacity_orig_of(cpu))
 		margin = sysctl_sched_capacity_margin_down;
 	else
-		margin = sysctl_sched_capacity_margin;
+		margin = sysctl_sched_capacity_margin_up;
 
 	return (capacity_orig_of(cpu) * 1024) > (util * margin);
 }
@@ -6583,11 +6585,6 @@ bool __cpu_overutilized(int cpu, int delta)
 {
 	return (capacity_orig_of(cpu) * 1024) <
 			((cpu_util(cpu) + delta) * capacity_margin);
-}
-
-bool cpu_overutilized(int cpu)
-{
-	return __cpu_overutilized(cpu, 0);
 }
 
 #ifdef CONFIG_SCHED_TUNE
@@ -7317,6 +7314,20 @@ static unsigned int uclamp_task_util(struct task_struct *p)
 	unsigned int est_util = task_util(p);
 
 	return clamp(est_util, min_util, max_util);
+
+}
+static inline int task_fits_capacity(struct task_struct *p,
+					long capacity,
+					int cpu)
+{
+	unsigned int margin;
+
+	if (capacity_orig_of(task_cpu(p)) > capacity_orig_of(cpu))
+		margin = sysctl_sched_capacity_margin_down;
+	else
+		margin = sysctl_sched_capacity_margin_up;
+
+	return capacity * 1024 > boosted_task_util(p) * margin;
 }
 
 static int start_cpu(struct task_struct *p, bool boosted,
@@ -7793,7 +7804,13 @@ static int wake_cap(struct task_struct *p, int cpu, int prev_cpu)
 	/* Bring task utilization in sync with prev_cpu */
 	sync_entity_load_avg(&p->se);
 
-	return min_cap * 1024 < uclamp_task_util(p) * capacity_margin;
+//TODO: double check uclamp change here
+	return task_fits_capacity(p, min_cap, cpu);
+}
+
+bool cpu_overutilized(int cpu)
+{
+	return (capacity_of(cpu) * 1024) < (cpu_util(cpu) * capacity_margin);
 }
 
 static inline int wake_to_idle(struct task_struct *p)
@@ -8333,6 +8350,20 @@ preempt:
 
 	if (sched_feat(LAST_BUDDY) && scale && entity_is_task(se))
 		set_last_buddy(se);
+}
+
+static inline void update_misfit_task(struct rq *rq, struct task_struct *p)
+{
+#ifdef CONFIG_SMP
+	rq->misfit_task = !task_fits_capacity(p, capacity_of(rq->cpu), rq->cpu);
+#endif
+}
+
+static inline void clear_rq_misfit(struct rq *rq)
+{
+#ifdef CONFIG_SMP
+	rq->misfit_task = 0;
+#endif
 }
 
 static struct task_struct *
