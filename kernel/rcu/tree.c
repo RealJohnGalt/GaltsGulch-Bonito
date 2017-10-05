@@ -697,7 +697,6 @@ static void rcu_eqs_enter_common(long long oldval, bool user)
 	WARN_ON_ONCE(IS_ENABLED(CONFIG_RCU_EQS_DEBUG) &&
 		     atomic_read(&rdtp->dynticks) & 0x1);
 	rcu_dynticks_task_enter();
-
 }
 
 /*
