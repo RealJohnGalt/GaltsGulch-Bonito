@@ -1818,16 +1818,6 @@ static inline unsigned long capacity_orig_of(int cpu)
 
 extern unsigned int walt_disabled;
 
-static inline unsigned long task_util(struct task_struct *p)
-{
-#ifdef CONFIG_SCHED_WALT
-	if (!walt_disabled && sysctl_sched_use_walt_task_util)
-		return p->ravg.demand /
-		       (sched_ravg_window >> SCHED_CAPACITY_SHIFT);
-#endif
-	return p->se.avg.util_avg;
-}
-
 /*
  * cpu_util returns the amount of capacity of a CPU that is used by CFS
  * tasks. The unit of the return value must be the one of capacity so we can
