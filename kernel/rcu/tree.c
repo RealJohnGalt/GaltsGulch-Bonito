@@ -3805,7 +3805,7 @@ int rcutree_prepare_cpu(unsigned int cpu)
 		rcu_init_percpu_data(cpu, rsp);
 
 	rcu_prepare_kthreads(cpu);
-	rcu_spawn_all_nocb_kthreads(cpu);
+	rcu_spawn_cpu_nocb_kthread(cpu);
 
 	return 0;
 }
