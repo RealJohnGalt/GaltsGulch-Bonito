@@ -7310,6 +7310,15 @@ static bool is_packing_eligible(struct task_struct *p, int target_cpu,
 	return (estimated_capacity <= capacity_curr_of(target_cpu));
 }
 
+static unsigned int uclamp_task_util(struct task_struct *p)
+{
+	unsigned int min_util = uclamp_eff_value(p, UCLAMP_MIN);
+	unsigned int max_util = uclamp_eff_value(p, UCLAMP_MAX);
+	unsigned int est_util = task_util(p);
+
+	return clamp(est_util, min_util, max_util);
+}
+
 static int start_cpu(struct task_struct *p, bool boosted,
 		     struct cpumask *rtg_target)
 {
@@ -7496,6 +7505,9 @@ retry:
 
 					return i;
 				}
+					/* Skip CPUs which do not fit task requirements */
+				if (capacity_orig < uclamp_task_util(p))
+					continue;
 
 				/*
 				 * Case A.2: Target ACTIVE CPU
@@ -7772,7 +7784,7 @@ static int wake_cap(struct task_struct *p, int cpu, int prev_cpu)
 	/* Bring task utilization in sync with prev_cpu */
 	sync_entity_load_avg(&p->se);
 
-	return min_cap * 1024 < task_util_est(p) * capacity_margin;
+	return min_cap * 1024 < uclamp_task_util(p) * capacity_margin;
 }
 
 static inline int wake_to_idle(struct task_struct *p)
