@@ -11,7 +11,6 @@
 #include <keys/user-type.h>
 #include <linux/hashtable.h>
 #include <linux/scatterlist.h>
-#include <linux/ratelimit.h>
 #include <linux/siphash.h>
 #include <crypto/aes.h>
 #include <crypto/algapi.h>
