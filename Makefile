@@ -652,6 +652,8 @@ LDFLAGS		+= -plugin-opt=-data-sections
 LLVM_AR		:= llvm-ar
 LLVM_DIS	:= llvm-dis
 export LLVM_AR LLVM_DIS
+# Set O3 optimization level for LTO
+LDFLAGS		+= --plugin-opt=O3
 endif
 
 KBUILD_CFLAGS	+= $(call cc-option,-fno-PIE)
