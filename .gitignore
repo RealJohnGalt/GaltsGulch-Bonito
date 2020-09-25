@@ -125,3 +125,5 @@ kernel/configs/android-*.cfg
 *.patch
 *.list
 out/*
+build.sh
+buildproton.sh
