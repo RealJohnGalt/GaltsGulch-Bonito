@@ -759,12 +759,13 @@ DISABLE_SCS	:= -fno-sanitize=shadow-call-stack
 export DISABLE_SCS
 endif
 
+ifeq ($(cc-name),gcc)
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS   += -Os
 else
 KBUILD_CFLAGS   += -O2
-ifeq ($(cc-name),gcc)
 KBUILD_CFLAGS	+= -mcpu=cortex-a75.cortex-a55 -mtune=cortex-a75.cortex-a55
+endif
 endif
 ifeq ($(cc-name),clang)
 KBUILD_CFLAGS   += -O3
@@ -778,7 +779,6 @@ KBUILD_CFLAGS	+= -mllvm -polly \
 		   -mllvm -polly-detect-keep-going \
 		   -mllvm -polly-vectorizer=stripmine \
 		   -mllvm -polly-invariant-load-hoisting
-endif
 endif
 endif
 
