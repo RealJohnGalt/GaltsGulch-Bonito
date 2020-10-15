@@ -1420,7 +1420,7 @@ int gmu_start(struct kgsl_device *device)
 
 		/* Vote for 300MHz DDR for GMU to init */
 		ret = msm_bus_scale_client_update_request(gmu->pcl,
-				pwr->pwrlevels[pwr->default_pwrlevel].bus_freq);
+				pwr->pwrlevels[pwr->num_pwrlevels - 1].bus_freq);
 		if (ret)
 			dev_err(&gmu->pdev->dev,
 				"Failed to allocate gmu b/w: %d\n", ret);
@@ -1435,7 +1435,7 @@ int gmu_start(struct kgsl_device *device)
 			goto error_gmu;
 
 		/* Request default DCVS level */
-		gmu_change_gpu_pwrlevel(device, pwr->default_pwrlevel);
+		gmu_change_gpu_pwrlevel(device, pwr->num_pwrlevels - 1);
 		msm_bus_scale_client_update_request(gmu->pcl, 0);
 		break;
 
@@ -1463,7 +1463,7 @@ int gmu_start(struct kgsl_device *device)
 		if (ret)
 			goto error_gmu;
 
-		gmu_change_gpu_pwrlevel(device, pwr->default_pwrlevel);
+		gmu_change_gpu_pwrlevel(device, pwr->num_pwrlevels - 1);
 		break;
 
 	case KGSL_STATE_RESET:
@@ -1485,8 +1485,7 @@ int gmu_start(struct kgsl_device *device)
 				goto error_gmu;
 
 			/* Send DCVS level prior to reset*/
-			gmu_change_gpu_pwrlevel(device,
-				pwr->default_pwrlevel);
+			gmu_change_gpu_pwrlevel(device, pwr->num_pwrlevels - 1);
 		} else {
 			/* GMU fast boot */
 			hfi_stop(gmu);
@@ -1662,7 +1661,7 @@ int adreno_gmu_fenced_write(struct adreno_device *adreno_dev,
 	if (!kgsl_gmu_isenabled(KGSL_DEVICE(adreno_dev)))
 		return 0;
 
-	for (i = 0; i < GMU_WAKEUP_RETRY_MAX; i++) {
+	for (i = 0; i < GMU_LONG_WAKEUP_RETRY_LIMIT; i++) {
 		adreno_read_gmureg(adreno_dev, ADRENO_REG_GMU_AHB_FENCE_STATUS,
 			&status);
 
@@ -1677,9 +1676,19 @@ int adreno_gmu_fenced_write(struct adreno_device *adreno_dev,
 
 		/* Try to write the fenced register again */
 		adreno_writereg(adreno_dev, offset, val);
+
+		if (i == GMU_SHORT_WAKEUP_RETRY_LIMIT)
+			dev_err(adreno_dev->dev.dev,
+				"Waited %d usecs to write fenced register 0x%x. Continuing to wait...\n",
+				(GMU_SHORT_WAKEUP_RETRY_LIMIT *
+				GMU_WAKEUP_DELAY_US),
+				reg_offset);
 	}
 
 	dev_err(adreno_dev->dev.dev,
-		"GMU fenced register write timed out: reg 0x%x\n", reg_offset);
+		"Timed out waiting %d usecs to write fenced register 0x%x\n",
+		GMU_LONG_WAKEUP_RETRY_LIMIT * GMU_WAKEUP_DELAY_US,
+		reg_offset);
+
 	return -ETIMEDOUT;
 }
