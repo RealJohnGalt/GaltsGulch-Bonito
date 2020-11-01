@@ -14,7 +14,7 @@
 #include <linux/delay.h>
 #include <linux/freezer.h>
 #include <linux/pm_wakeup.h>
-#include <linux/fb.h>
+#include <linux/msm_drm_notify.h>
 #include <linux/power_supply.h>
 
 #include "f2fs.h"
@@ -299,21 +299,24 @@ static void rapid_gc_fb_work(struct work_struct *work)
 static int msm_drm_notifier_callback(struct notifier_block *self,
 				unsigned long event, void *data)
 {
-	struct fb_event *evdata = data;
+	struct msm_drm_notifier *evdata = data;
 	int *blank;
 
-	if (event != FB_EVENT_BLANK)
+	if (event != MSM_DRM_EVENT_BLANK)
+		goto out;
+
+	if (!evdata || !evdata->data || evdata->id != MSM_DRM_PRIMARY_DISPLAY)
 		goto out;
 
 	blank = evdata->data;
 	switch (*blank) {
-	case FB_BLANK_POWERDOWN:
+	case MSM_DRM_BLANK_POWERDOWN:
 		if (!screen_on)
 			goto out;
 		screen_on = false;
 		queue_work(system_power_efficient_wq, &rapid_gc_fb_worker);
 		break;
-	case FB_BLANK_UNBLANK:
+	case MSM_DRM_BLANK_UNBLANK:
 		if (screen_on)
 			goto out;
 		screen_on = true;
