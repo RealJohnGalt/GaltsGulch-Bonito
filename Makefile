@@ -646,8 +646,8 @@ all: vmlinux
 # Make toolchain changes before including arch/$(SRCARCH)/Makefile to ensure
 # ar/cc/ld-* macros return correct values.
 ifdef CONFIG_LD_GOLD
-LDFINAL_vmlinux := $(LD)
 LD		:= $(LDGOLD)
+LDFINAL_vmlinux := $(LD)
 endif
 ifdef CONFIG_LD_LLD
 LD		:= $(LDLLD)
