@@ -2978,7 +2978,7 @@ int hdd_set_limit_off_chan_for_tos(hdd_adapter_t *adapter, enum tos tos,
 int hdd_reset_limit_off_chan(hdd_adapter_t *adapter);
 
 #undef nla_parse
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
+#if 0
 static inline void hdd_dev_setup_destructor(struct net_device *dev)
 {
 	dev->destructor = free_netdev;
@@ -3000,7 +3000,7 @@ hdd_nla_parse_nested(struct nlattr *tb[], int maxtype, const struct nlattr *nla,
 #else
 static inline void hdd_dev_setup_destructor(struct net_device *dev)
 {
-	dev->needs_free_netdev = true;
+	dev->destructor = free_netdev;
 }
 
 static inline int
