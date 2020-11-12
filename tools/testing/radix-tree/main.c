@@ -206,7 +206,8 @@ void copy_tag_check(void)
 	}
 
 //	printf("\ncopying tags...\n");
-	tagged = tag_tagged_items(&tree, NULL, start, end, ITEMS, 0, 1);
+	cur = start;
+	tagged = radix_tree_range_tag_if_tagged(&tree, &cur, end, ITEMS, 0, 1);
 
 //	printf("checking copied tags\n");
 	assert(tagged == count);
@@ -214,13 +215,16 @@ void copy_tag_check(void)
 
 	/* Copy tags in several rounds */
 //	printf("\ncopying tags...\n");
-	tmp = rand() % (count / 10 + 2);
-	tagged = tag_tagged_items(&tree, NULL, start, end, tmp, 0, 2);
-	assert(tagged == count);
+	cur = start;
+	do {
+		tmp = rand() % (count/10+2);
+		tagged = radix_tree_range_tag_if_tagged(&tree, &cur, end, tmp, 0, 2);
+	} while (tmp == tagged);
 
 //	printf("%lu %lu %lu\n", tagged, tmp, count);
 //	printf("checking copied tags\n");
 	check_copied_tags(&tree, start, end, idx, ITEMS, 0, 2);
+	assert(tagged < tmp);
 	verify_tag_consistency(&tree, 0);
 	verify_tag_consistency(&tree, 1);
 	verify_tag_consistency(&tree, 2);
@@ -236,7 +240,7 @@ static void __locate_check(struct radix_tree_root *tree, unsigned long index,
 
 	item_insert_order(tree, index, order);
 	item = item_lookup(tree, index);
-	index2 = find_item(tree, item);
+	index2 = radix_tree_locate_item(tree, item);
 	if (index != index2) {
 		printf("index %ld order %d inserted; found %ld\n",
 			index, order, index2);
@@ -270,17 +274,17 @@ static void locate_check(void)
 			     index += (1UL << order)) {
 				__locate_check(&tree, index + offset, order);
 			}
-			if (find_item(&tree, &tree) != -1)
+			if (radix_tree_locate_item(&tree, &tree) != -1)
 				abort();
 
 			item_kill_tree(&tree);
 		}
 	}
 
-	if (find_item(&tree, &tree) != -1)
+	if (radix_tree_locate_item(&tree, &tree) != -1)
 		abort();
 	__locate_check(&tree, -1, 0);
-	if (find_item(&tree, &tree) != -1)
+	if (radix_tree_locate_item(&tree, &tree) != -1)
 		abort();
 	item_kill_tree(&tree);
 }
