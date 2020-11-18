@@ -7279,7 +7279,7 @@ static unsigned long cpu_estimated_capacity(int cpu, struct task_struct *p)
 #else
 static unsigned long cpu_estimated_capacity(int cpu, struct task_struct *p)
 {
-	return cpu_util_wake(cpu, p);
+	return cpu_util_without(cpu, p);
 }
 #endif
 
@@ -7390,7 +7390,7 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 		cpumask_t search_cpus;
 		bool do_rotate = false, avoid_prev_cpu = false;
 
-		cpumask_copy(&search_cpus, tsk_cpus_allowed(p));
+		cpumask_copy(&search_cpus, &p->cpus_allowed);
 		cpumask_and(&search_cpus, &search_cpus, sched_group_cpus(sg));
 		i = find_first_cpu_bit(p, &search_cpus, sg, &avoid_prev_cpu,
 				       &do_rotate, &first_cpu_bit_env);
@@ -7782,7 +7782,7 @@ bias_to_waker_cpu(struct task_struct *p, int cpu, struct cpumask *rtg_target)
 {
 	int rtg_target_cpu = rtg_target ? cpumask_first(rtg_target) : cpu;
 
-	return cpumask_test_cpu(cpu, tsk_cpus_allowed(p)) &&
+	return cpumask_test_cpu(cpu, &p->cpus_allowed) &&
 	       cpu_active(cpu) && !cpu_isolated(cpu) &&
 	       capacity_orig_of(cpu) >= capacity_orig_of(rtg_target_cpu) &&
 	       task_fits_max(p, cpu);
