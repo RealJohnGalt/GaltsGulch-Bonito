@@ -530,8 +530,10 @@ static inline void __compat_kvfree(const void *addr)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
 #include <net/netlink.h>
 #include <net/genetlink.h>
+#if 0
 #define nlmsg_parse(a, b, c, d, e, f) nlmsg_parse(a, b, c, d, e)
 #define nla_parse_nested(a, b, c, d, e) nla_parse_nested(a, b, c, d)
+#endif
 #endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) && !defined(ISRHEL7)
@@ -726,6 +728,7 @@ static inline void cpu_to_le32_array(u32 *buf, unsigned int words)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 #include <crypto/algapi.h>
+#if 0
 static inline void crypto_xor_cpy(u8 *dst, const u8 *src1, const u8 *src2,
 				  unsigned int size)
 {
@@ -751,6 +754,7 @@ static inline void crypto_xor_cpy(u8 *dst, const u8 *src1, const u8 *src2,
 	}
 }
 #endif
+#endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 0)
 #define read_cpuid_part() read_cpuid_part_number()
@@ -761,7 +765,9 @@ static inline void crypto_xor_cpy(u8 *dst, const u8 *src1, const u8 *src2,
 #endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
+#if 0
 #define totalram_pages() totalram_pages
+#endif
 #endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
