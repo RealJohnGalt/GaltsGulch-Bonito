@@ -7512,9 +7512,9 @@ retry:
 
 				/*
 				 * Skip searching for active CPU for tasks have
-				 * high priority & prefer_high_cap.
+				 * high priority.
 				 */
-				if (prefer_high_cap && p->prio <= DEFAULT_PRIO)
+				if (p->prio <= DEFAULT_PRIO)
 					continue;
 				/*
 				 * Case A.2: Target ACTIVE CPU
