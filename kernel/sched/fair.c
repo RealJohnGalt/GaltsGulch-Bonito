@@ -6562,9 +6562,9 @@ static inline bool __task_fits(struct task_struct *p, int cpu, int util)
 	util += boosted_task_util(p);
 
 	if (capacity_orig_of(task_cpu(p)) > capacity_orig_of(cpu))
-		margin = sysctl_sched_capacity_margin_down;
+		margin = sysctl_sched_capacity_margin_down[task_cpu(p)];
 	else
-		margin = sysctl_sched_capacity_margin_up;
+		margin = sysctl_sched_capacity_margin_up[task_cpu(p)];
 
 	return (capacity_orig_of(cpu) * 1024) > (util * margin);
 }
@@ -7330,7 +7330,7 @@ static inline int task_fits_capacity(struct task_struct *p,
 {
 	unsigned int margin;
 
-	if (capacity == max_capacity)
+	if (capacity == (long)cpu_capacity)
 		return true;
 
 	if (capacity_orig_of(task_cpu(p)) > capacity_orig_of(cpu))
