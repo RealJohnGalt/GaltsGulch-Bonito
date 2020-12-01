@@ -166,7 +166,7 @@ unsigned int sysctl_sched_cfs_bandwidth_slice = 5000UL;
  * util * margin < capacity * 1024
  */
 unsigned int sysctl_sched_capacity_margin = 1280; /* ~20% margin */
-unsigned int sysctl_sched_capacity_margin_down = 1685; /* ~40% margin */
+unsigned int sysctl_sched_capacity_margin_down = 1920; /* ~65% margin */
 #define capacity_margin sysctl_sched_capacity_margin
 
 #ifdef CONFIG_SCHED_WALT
