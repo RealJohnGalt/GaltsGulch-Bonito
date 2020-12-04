@@ -878,8 +878,8 @@ void psi_memstall_tick(struct task_struct *task, int cpu)
  */
 void psi_memstall_enter(unsigned long *flags)
 {
+	struct rq *this_rq = this_rq();
 	struct rq_flags rf;
-	struct rq *rq;
 
 	if (static_branch_likely(&psi_disabled))
 		return;
@@ -892,12 +892,12 @@ void psi_memstall_enter(unsigned long *flags)
 	 * changes to the task's scheduling state, otherwise we can
 	 * race with CPU migration.
 	 */
-	rq = this_rq_lock_irq(&rf);
+	rq_lock(this_rq, &rf);
 
 	current->in_memstall = 1;
 	psi_task_change(current, 0, TSK_MEMSTALL);
 
-	rq_unlock_irq(rq, &rf);
+	rq_unlock(this_rq, &rf);
 }
 
 /**
@@ -908,8 +908,8 @@ void psi_memstall_enter(unsigned long *flags)
  */
 void psi_memstall_leave(unsigned long *flags)
 {
+	struct rq *this_rq = this_rq();
 	struct rq_flags rf;
-	struct rq *rq;
 
 	if (static_branch_likely(&psi_disabled))
 		return;
@@ -921,12 +921,12 @@ void psi_memstall_leave(unsigned long *flags)
 	 * changes to the task's scheduling state, otherwise we could
 	 * race with CPU migration.
 	 */
-	rq = this_rq_lock_irq(&rf);
+	rq_lock(this_rq, &rf);
 
 	current->in_memstall = 0;
 	psi_task_change(current, TSK_MEMSTALL, 0);
 
-	rq_unlock_irq(rq, &rf);
+	rq_lock(this_rq, &rf);
 }
 
 #ifdef CONFIG_CGROUPS
